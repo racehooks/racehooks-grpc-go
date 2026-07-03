@@ -1,0 +1,8 @@
+version: v1
+plugins:
+  - plugin: go
+    out: .
+    opt: module=github.com/racehooks/racehooks-grpc-go
+  - plugin: go-grpc
+    out: .
+    opt: module=github.com/racehooks/racehooks-grpc-go

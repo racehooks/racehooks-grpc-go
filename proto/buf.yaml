@@ -1,0 +1,14 @@
+version: v1
+name: buf.build/racehooks/feed
+lint:
+  use:
+    - STANDARD
+  # The service/message names are fixed by the canonical cross-language contract
+  # (the backend gateway and the Node client use these exact names), so buf's
+  # naming opinions do not apply.
+  except:
+    - SERVICE_SUFFIX
+    - RPC_RESPONSE_STANDARD_NAME
+breaking:
+  use:
+    - FILE

@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package racehooks.v1;
+
+option go_package = "github.com/racehooks/racehooks-grpc-go/internal/racehooksv1;racehooksv1";
+
+// RaceHooks streaming feed delivery over gRPC. See the server contract in the
+// backend repo's docs/GRPC_STREAMING_SPEC.md.
+//
+// Subscribe is the customer-facing server-streaming RPC: one request, an
+// unbounded stream of feed messages. PushFeed is internal (gateway-to-gateway)
+// and is not used by this client.
+service FeedStream {
+  // Customer-facing: subscribe to one or more feeds; receive a stream of
+  // FeedMessage until the client cancels or the server closes for reconnect.
+  rpc Subscribe(SubscribeRequest) returns (stream FeedMessage);
+
+  // Internal: stream-gateway -> grpc-gateway relay of one enriched feed message.
+  rpc PushFeed(PushFeedRequest) returns (PushAck);
+}
+
+message SubscribeRequest {
+  // Feed ids to receive, or ["*"] for every feed the caller's tier allows.
+  repeated string feeds = 1;
+  // Optional delivery filters.
+  Filters filters = 2;
+  // Optional resume cursor: last seq the client saw. The gateway replays buffered
+  // messages with seq > resume_from. 0 = fresh subscribe.
+  uint64 resume_from = 3;
+}
+
+message Filters {
+  repeated int32 driver_numbers = 1;
+  repeated string constructors = 2;
+  repeated string event_types = 3;
+}
+
+message FeedMessage {
+  // Feed id, e.g. "timingdata". Control frames use "_reconnect" / "_connected".
+  string feed = 1;
+  string session_id = 2;
+  // ISO-8601 timestamp.
+  string utc = 3;
+  // UTF-8 JSON body — same shape as the webhook/SSE payload.
+  bytes json_payload = 4;
+  // Monotonic per-session sequence, for client-side dedupe and resume.
+  uint64 seq = 5;
+}
+
+message PushFeedRequest {
+  string feed = 1;
+  string scope = 2;
+  uint64 seq = 3;
+  bytes json_payload = 4;
+}
+
+message PushAck {
+  bool ok = 1;
+}
