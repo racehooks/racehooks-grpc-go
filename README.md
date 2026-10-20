@@ -78,6 +78,10 @@ make lint       # buf lint + go vet + gofmt check
 The protobuf contract (`proto/racehooks/v1/feed.proto`) is shared across languages and
 must stay in sync with the backend gateway and the other clients.
 
+## Documentation
+
+Full docs: https://racehooks.io/docs/sdk
+
 ## License
 
 MIT
